@@ -90,6 +90,16 @@ ssh-keygen (/home/locadm/.ssh/id_rsa)
 sudo apt update && sudo apt install openssl -y
 openssl genpkey -algorithm RSA -out domain.key -pkeyopt rsa_keygen_bits:2048
 openssl req -x509 -new -key domain.key -days 365 -out domain.crt
-scp locadm@192.168.1.4:/home/locadm/domain.crt /usr/locadm/share/ca-certificates/tmca.crt
+!!! scp locadm@192.168.1.4:/home/locadm/domain.crt /usr/locadm/share/ca-certificates/tmca.crt !!!
 update-ca-certificates
 
+Создание сртификата для https:
+openssl req -new -newkey rsa:2048 -nodes -keyout iwtm.key -out iwtm.csr
+openssl x509 -req -days 365 -in iwtm.csr -signkey iwtm.key -out iwtm.crt
+
+Sniffer: iwtm stop + iwtm disable all + iwtm enable iw_sniffer,
+/opt/iw/tm5/etc/sniffer.conf ("ListenHost": "x.x.1.4")
+iwtm enable iw_proxy_http + iwtm enable iw_proxy_smtp + iwtm enable iw_proxy_icq
+/opt/iw/tm5/etc/proxy.conf (в разделе Iscp секций Smtp, Icq, Http указать значение параметров Host и Port)
+
+Putty: в винде скопируйте текст из поля "Public key for pasting into OpenSSH authorized_keys file" в верхнюю часть окна, в линукс из putty (~/.ssh/authorized_keys)
