@@ -1,0 +1,95 @@
+1. Demo.lab
+2. Ald.lab
+3. iwtm
+4. iwdm
+5. iwdd
+6. astra-cli
+7. win-cli
+8. iwdm-db
+
+Demo.lab:
+Создание требуемых пользователей, сервера условной пересылки и отношения доверия с ald. В файле hosts: x.x.1.3 dc.aldpro.lab x.x.1.3 aldpro.lab
+
+Ald.lab:
+Попробовать без ipa-server-install --uninstall
+rm /etc/systemd/system/apache2.service.d/aldpro.conf
+Далее /etc/resolv (search aldpro.lab, nameserver 127.0.0.1), /etc/hosts (x.x.1.3 dc.aldpro.lab dc, x.x.1.4 iwtm.demo.lab iwtm, x.x.1.2 demolab.demo.lab), /etc/network/interfaces;
+sudo aldpro-server-install -d aldpro.lab -n dc -p xxXX1234 --ip x.x.1.3 --no-reboot
+{kadmin.local
+change_password admin}
+
+astra-cli:
+Редакция конфигурации и имени через nmtui,
+/etc/hosts (127.0.1.1 astra-cli, x.x.1.7 astra-cli.aldpro.lab), 
+/etc/apt/sources.list (deb https://dl.astralinux.ru/astra/frozen/1.7_x86-64/1.7.7/uu/2/repository-base/ 1.7_x86-64 main contrib non-free
+                       deb https://dl.astralinux.ru/astra/frozen/1.7_x86-64/1.7.7/uu/2/repository-extended/ 1.7_x86-64 main contrib non-free),
+/etc/apt/sources.list.d/aldpro.list (deb https://dl.astralinux.ru/aldpro/frozen/01/3.0.0/ 1.7_x86-64 main base),
+/etc/apt/preferences.d/aldpro (Package: *
+                               Pin: release n=generic
+                               Pin-Priority: 900)
+Если с apt update временная ошибка при разрешении dl.astralinux.ru помогает в /etc/resolv.conf: nameserver x.x.1.7 (nameserver 8.8.8.8).
+DEBIAN_FRONTEND=noninteractive apt-get install -q -y aldpro-client
+sudo /opt/rbta/aldpro/client/bin/aldpro-client-installer -c aldpro.lab -u admin -p xxXX1234 -d astra-cli -i -f
+
+Ald.lab: 
+/etc/bind/ipa-options-ext.conf (смена на dnssec-validation no)
+ipactl restart
+
+Demo.lab:
+Заход на (возможно dc.demo.lab/.../) x.x.1.3/ipa/ui/ (создать отношение доверия, при невозможности обнаружить домены помогло поставить им в шлюзы друг друга, если вылазит ошибка про домены -> успех -> "отмена" и перезагрузка) и x.x.1.3/ad/ui/ (создать требуемых пользователей, подключение к AD и миграцию пользователей: контроллер домена ldap://demolab.demo.lab:389, запись для миграции ldapuser или admin-)
+
+iwtm:
+(dpkg -i 1.7.0.../pool/main/c/cd=certificates/(file).deb)
+/etc/network/interfaces, /etc/hosts (x.x.1.4 iwtm, x.x.1.3 dc.aldpro.lab dc)
+Для работы консула: /opt/iw/tm5/etc/consul/consul.json (сменить адрес blind_addr на x.x.1.4)
+service iwtm-consul start
+На веб-интерфейсе: управление -> лицензии 
+управление -> ldap-синхронизация (AD: имя: AD, ldap-сервер: x.x.1.2, ldap-запрос: dc=demo,dc=lab, логин через ldapuser // ALD: логин admin@aldpro.lab) -> запустить синхронизацию
+управление -> управление доступом (добавляем tmofficer) -> редактирование пользователя (email: tmofficer@demo.lab, полное имя: tmofficer, роли: администратор, офицер безопасности, области видимости: полный доступ, VIP)
+
+iwdm-db:
+/etc/hosts (x.x.1.5 iwdm), /etc/network/interfaces, /etc/resolv.conf (search demo.lab nameserver x.x.1.2), 
+/etc/apt/sources.list (deb https://download.astralinux.ru/astra/stable/1.7_x86-64/repository-main/ 1.7_x86-64 main contrib non-free
+                       deb https://download.astralinux.ru/astra/stable/1.7_x86-64/repository-update/ 1.7_x86-64 main contrib non-free
+                       deb https://download.astralinux.ru/astra/stable/1.7_x86-64/repository-base/ 1.7_x86-64 main contrib non-free
+                       deb https://download.astralinux.ru/astra/stable/1.7_x86-64/repository-extended/ 1.7_x86-64 main contrib non-free)
+sudo apt install wget
+wget -O - https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc.gpg > /dev/null
+sudo wget htps://packages.microsoft.com/config/debian/10/prod.list -O /etc/apt/sources.d/microsoft-prod.list
+sudo apt update
+sudo apt install dotnet-sdk-6.0
+sudo apt install postgresql (sudo -u postgres psql + \password + \q)
+apt install socat && apt install conntrack
+(После монтирования диска) rsync -ahv --progress ./'linux server' ~/iwtm/here 
+tar xvf iw_devicemonitor_setup_7.11.1.38.tar.xz
+Запуск ./setup.py install
+
+kubectl get pods -n infowatch
+kubectl get configmap nginx-config -o yaml -n infowatch > n.yaml
+В n.yaml (location /api_dm {
+              rewrite /api_dm/(.+) /$1 break;
+              proxy_pass https://x.x.1.5:15007/;
+              proxy_set_header Cookie $http_cookie;
+          })
+kubectl apply -f n.yaml
+kubectl rollout restart deployment webgui-central -n infowatch
+
+chmod +x ./install.sh (русский, принятие лицензии, центральный сервер, новая БД, ip iwtm, токен в iwtm (управление -> плагины -> iwtm -> токен))
+Для открытого ключа в новом окне консоли (alt + f2): 
+kubectl get secret guardkeys-central -n infowatch -o 'go-template={{index .data "ec256-public.pem"}}' | base64 -d > /opt/iw/dmserver/bin/guard.pem
+chown -f iwdms:iwdms /opt/iw/dmserver/bin/guard.pem
+(Серты
+Из iwtm в /usr/local/share/ca-certificates/
+update-ca-certificates)
+
+На веб-интерфейсе: настройки -> интеграции (у AD через admin-db) 
+
+iwtm:
+ssh-keygen (/home/locadm/.ssh/id_rsa)
+
+sudo apt update && sudo apt install openssl -y
+openssl genpkey -algorithm RSA -out domain.key -pkeyopt rsa_keygen_bits:2048
+openssl req -x509 -new -key domain.key -days 365 -out domain.crt
+scp locadm@192.168.1.4:/home/locadm/domain.crt /usr/locadm/share/ca-certificates/tmca.crt
+update-ca-certificates
+
