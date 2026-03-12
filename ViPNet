@@ -67,3 +67,6 @@ iplir adapter add bond0 traffic on
 inet ifconfig bond0 up
 inet ifconfig eth2 up
 
+OCSP-теории чееек
+Что это? Online Certificate Status Protocol (https://youtu.be/F1ymDcIauTE?si=mE91spI_t7HzQUuA)
+В Server Manager, добавление ролей (роль Active Directory Certificate Services? потом далее-далле и Online Responder)
