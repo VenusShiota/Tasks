@@ -8,12 +8,15 @@
 8. iwdm-db
 
 Demo.lab:
-Создание требуемых пользователей, сервера условной пересылки и отношения доверия с ald. В файле hosts: x.x.1.3 dc.aldpro.lab x.x.1.3 aldpro.lab
+Создание требуемых пользователей, сервера условной пересылки и отношения доверия с ald. В файле hosts: x.x.1.3 dc.aldpro.lab
+                                                                                                       x.x.1.3 aldpro.lab
 
 Ald.lab:
-Попробовать без ipa-server-install --uninstall
+ipa-server-install --uninstall
 rm /etc/systemd/system/apache2.service.d/aldpro.conf
-Далее /etc/resolv (search aldpro.lab, nameserver 127.0.0.1), /etc/hosts (x.x.1.3 dc.aldpro.lab dc, x.x.1.4 iwtm.demo.lab iwtm, x.x.1.2 demolab.demo.lab), /etc/network/interfaces;
+Далее /etc/resolv (search aldpro.lab, nameserver 127.0.0.1), /etc/network/interfaces, /etc/hosts (x.x.1.3 dc.aldpro.lab dc, 
+                                                                                                  x.x.1.4 iwtm.demo.lab iwtm, 
+                                                                                                  x.x.1.2 demolab.demo.lab);
 sudo aldpro-server-install -d aldpro.lab -n dc -p xxXX1234 --ip x.x.1.3 --no-reboot
 {kadmin.local
 change_password admin}
@@ -21,22 +24,23 @@ change_password admin}
 astra-cli:
 Редакция конфигурации и имени через nmtui,
 /etc/hosts (127.0.1.1 astra-cli, x.x.1.7 astra-cli.aldpro.lab), 
-/etc/apt/sources.list (deb https://dl.astralinux.ru/astra/frozen/1.7_x86-64/1.7.7/uu/2/repository-base/ 1.7_x86-64 main contrib non-free
-                       deb https://dl.astralinux.ru/astra/frozen/1.7_x86-64/1.7.7/uu/2/repository-extended/ 1.7_x86-64 main contrib non-free),
-/etc/apt/sources.list.d/aldpro.list (deb https://dl.astralinux.ru/aldpro/frozen/01/3.0.0/ 1.7_x86-64 main base),
+/etc/apt/sources.list (deb http://dl.astralinux.ru/astra/frozen/1.7_x86-64/1.7.4/repository-main/ 1.7_x86-64 main contrib non-free
+                       deb http://dl.astralinux.ru/astra/frozen/1.7_x86-64/1.7.4/repository-update/ 1.7_x86-64 main contrib non-free),
+/etc/apt/sources.list.d/aldpro.list (deb https://dl.astralinux.ru/aldpro/frozen/01/2.2.0/ 1.7_x86-64 main base),
 /etc/apt/preferences.d/aldpro (Package: *
-                               Pin: release n=generic
+                               Pin: release n=1.7_x86-64
                                Pin-Priority: 900)
-Если с apt update временная ошибка при разрешении dl.astralinux.ru помогает в /etc/resolv.conf: nameserver x.x.1.7 (nameserver 8.8.8.8).
-DEBIAN_FRONTEND=noninteractive apt-get install -q -y aldpro-client
-sudo /opt/rbta/aldpro/client/bin/aldpro-client-installer -c aldpro.lab -u admin -p xxXX1234 -d astra-cli -i -f
+Если с apt update временная ошибка при разрешении dl.astralinux.ru в /etc/resolv.conf: nameserver x.x.1.7 (nameserver 8.8.8.8).
+DEBIAN_FRONTEND=noninteractive apt-get install -q -y aldpro-client или apt-get install aldpro-client
+sudo /opt/rbta/aldpro/client/bin/aldpro-client-installer --domain dc.aldpro.lab --account admin --password xxXX1234 --host astra-cli --gui --force
+                                                        {-c aldpro.lab -u admin -p xxXX1234 -d astra-cli -i -f}
 
 Ald.lab: 
 /etc/bind/ipa-options-ext.conf (смена на dnssec-validation no)
 ipactl restart
 
 Demo.lab:
-Заход на (возможно dc.demo.lab/.../) x.x.1.3/ipa/ui/ (создать отношение доверия, при невозможности обнаружить домены помогло поставить им в шлюзы друг друга, если вылазит ошибка про домены -> успех -> "отмена" и перезагрузка) и x.x.1.3/ad/ui/ (создать требуемых пользователей, подключение к AD и миграцию пользователей: контроллер домена ldap://demolab.demo.lab:389, запись для миграции ldapuser или admin-)
+Заход на (возможно dc.demo.lab/.../) x.x.1.3/ipa/ui/ (создать отношение доверия, если вылазит ошибка про домены -> успех -> "отмена" и перезагрузка) и x.x.1.3/ad/ui/ (создать требуемых пользователей, подключение к AD и миграцию пользователей: контроллер домена ldap://demolab.demo.lab:389, запись для миграции ldapuser или admin-)
 
 iwtm:
 (dpkg -i 1.7.0.../pool/main/c/cd=certificates/(file).deb)
