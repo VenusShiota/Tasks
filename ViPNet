@@ -70,3 +70,6 @@ inet ifconfig eth2 up
 OCSP-теории чееек
 Что это? Online Certificate Status Protocol (https://youtu.be/F1ymDcIauTE?si=mE91spI_t7HzQUuA)
 В Server Manager, добавление ролей (роль Active Directory Certificate Services? потом далее-далле и Online Responder)
+сказали по-другому нада, ещё вариант:
+по руководству УКЦ адрес OCSP в настройках, запрос сертификата, 
+экспорт его в CSP после обработки в УКЦ с политикой применения... 
