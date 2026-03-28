@@ -59,7 +59,7 @@ iwdm-db:
                        deb https://download.astralinux.ru/astra/stable/1.7_x86-64/repository-extended/ 1.7_x86-64 main contrib non-free)
 sudo apt install wget
 wget -O - https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc.gpg > /dev/null
-sudo wget htps://packages.microsoft.com/config/debian/10/prod.list -O /etc/apt/sources.d/microsoft-prod.list
+sudo wget https://packages.microsoft.com/config/debian/10/prod.list -O /etc/apt/sources.list.d/microsoft-prod.list
 sudo apt update
 sudo apt install dotnet-sdk-6.0
 sudo apt install postgresql (sudo -u postgres psql + \password + \q)
@@ -105,6 +105,8 @@ Sniffer: iwtm stop + iwtm disable all + iwtm enable iw_sniffer,
 /opt/iw/tm5/etc/sniffer.conf ("ListenHost": "x.x.1.4")
 iwtm enable iw_proxy_http + iwtm enable iw_proxy_smtp + iwtm enable iw_proxy_icq
 /opt/iw/tm5/etc/proxy.conf (в разделе Iscp секций Smtp, Icq, Http указать значение параметров Host и Port)
+а оно что? оно не работает, so:
+systemctl unmask iw_sniffer
 
 Putty: в винде скопируйте текст из поля "Public key for pasting into OpenSSH authorized_keys file" в верхнюю часть окна, в линукс из putty (~/.ssh/authorized_keys)
 
@@ -112,6 +114,14 @@ Putty: в винде скопируйте текст из поля "Public key f
 iwdm:
 Создание задачи -> добавление компьютера в задачу и её запуск. Создание группы компьютеров и добавление компа с агентом.
 Создание правила. 
+systemctl restart ufw
+ufw allow 15505/tcp
+(на iwdm запуск от admin для линухи)
+
+windows:
+add-windowscapability -online -name openssh.server~~~~0.0.1.0
+Get-WindowsCapability -Online | ? name -like ‘OpenSSH*’
+запуск службы ssh-server в службах собсна
 
 iwtm:
 Технологии -> текстовые объекты. Создание политики и тестового объекта.
