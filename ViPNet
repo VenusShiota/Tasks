@@ -58,14 +58,16 @@ ViPNet Client с УКЦ -> Пропуск трафика с IP БД на мой 
 
 
 Агрегирование каналов связи:
+в условиях, что eth0 и eth1 - 4 сеть, иначе сообразишь
 под админом (en)
 inet ifconfig eth0 (и eth1) class slave
 inet bonding add 0 mod balance-rr slaves eth0 eth1
 inet ifconfig bond0 address 10.8.248.2 netmask 255.255.255.0 (адрес - внешний ip корда)
-inet ifconfig eth2 address 10.8.248.2 netmask 255.255.255.0 (адрес - шлюз второго клиента)
+inet ifconfig eth2 address 10.8.248.2 netmask 255.255.255.0 (адрес - шлюз клиента 1.5 сети // внутренний адрес корда)
 iplir adapter add bond0 traffic on
 inet ifconfig bond0 up
 inet ifconfig eth2 up
+inet show interface bond0
 
 OCSP-теории чееек
 Что это? Online Certificate Status Protocol (https://youtu.be/F1ymDcIauTE?si=mE91spI_t7HzQUuA)
