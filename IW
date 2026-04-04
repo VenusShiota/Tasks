@@ -88,18 +88,7 @@ update-ca-certificates)
 
 На веб-интерфейсе: настройки -> интеграции (у AD через admin-db) 
 
-iwtm:
-ssh-keygen (/home/locadm/.ssh/id_rsa)
-
-sudo apt update && sudo apt install openssl -y
-openssl genpkey -algorithm RSA -out domain.key -pkeyopt rsa_keygen_bits:2048
-openssl req -x509 -new -key domain.key -days 365 -out domain.crt
 !!! scp locadm@192.168.1.4:/home/locadm/domain.crt /usr/locadm/share/ca-certificates/tmca.crt !!!
-update-ca-certificates
-
-Создание сртификата для https:
-openssl req -new -newkey rsa:2048 -nodes -keyout iwtm.key -out iwtm.csr
-openssl x509 -req -days 365 -in iwtm.csr -signkey iwtm.key -out iwtm.crt
 
 Sniffer: iwtm stop + iwtm disable all + iwtm enable iw_sniffer,
 /opt/iw/tm5/etc/sniffer.conf ("ListenHost": "x.x.1.4")
@@ -114,6 +103,9 @@ Putty: в винде скопируйте текст из поля "Public key f
 iwdm:
 Создание задачи -> добавление компьютера в задачу и её запуск. Создание группы компьютеров и добавление компа с агентом.
 Создание правила. 
+в /etc/ssh/sshd_config (ClientAliveInterval = 60
+                        ClientAliveCountMax = 3)
+service sshd restart
 systemctl restart ufw
 ufw allow 15505/tcp
 (на iwdm запуск от admin для линухи)
@@ -132,3 +124,6 @@ iwtm:
 Astra-cli:
 В dlptest.com (http/https) отправка "политики".
 В iwtm -> События -> Запуск запроса. 
+
+Беспарольный доступ по ssh: https://share.google/ixrFHRSfodtVOUZNe 
+Частота политик: https://share.google/40sKaGIa3oGbZv204
