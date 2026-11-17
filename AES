@@ -58,43 +58,55 @@ def mix_column(text):
     text = shift_rows(text)
     help_box = [2, 3, 1, 1,
                 1, 2, 3, 1,
-                2, 3, 1, 1,
+                1, 1, 2, 3,
                 3, 1, 1, 2]
-    result_text = []
+    result_text = [] 
     half_result = [0b00000000, 0b00000000, 0b00000000, 0b00000000]
     for i in range(len(text) // 4):
-        for l in range(4): #Каждая буква постолбцово (l*4+i)
-            for j in range(4): #Каждые четыре значения Галуа
-                if help_box[j] == 2:
-                    half_result[j] = int(text[l*4+i], 16)
-                    print(format(half_result[j], '08b'))
-                    half_result[j] = half_result[j] << 1
-                    if len(format(half_result[j], '08b')) > 8:
-                        half_result[j] = half_result[j] ^ 0b00011011
-                        print("big", end = " ")
-                        print(format(half_result[j], '08b'))
-                    print(format(half_result[j], '08b'))
-                elif help_box[j] == 3:
-                    half_result[j] = int(text[i+1*j], 16)
-                    half_result[j] = half_result[j] << 1
-                    half_result[j] = half_result[j] ^ int(text[i+1*j], 16)
-                    if half_result[j] > 0b11111111:
-                        half_result[j] = half_result[j] ^ 0b00011011
-                elif help_box[j] == 1:
-                    half_result[j] = int(text[i+1*j], 16)
-
-#        result_text.append(format(half_result, '02x'))
+        for j in range(4): #Каждая буква постолбцово (j*4+i)
+            for l in range(4): #Каждые четыре значения Галуа построчно (j*4+l)
+                if help_box[j*4+l] == 2:
+                    half_result[l] = int(text[l*4+i], 16)
+                    half_result[l] = half_result[l] << 1
+                    if len(format(half_result[l], '08b')) > 8:
+                        half_result[l] = half_result[l] % 0b100000000
+                        half_result[l] = half_result[l] ^ 0b00011011   
+                elif help_box[j*4+l] == 3:
+                    half_result[l] = int(text[l*4+i], 16)
+                    half_result[l] = half_result[l] << 1
+                    half_result[l] = half_result[l] ^ int(text[l*4+i], 16)
+                    if len(format(half_result[l], '08b')) == 9:
+                        half_result[l] = half_result[l] % 0b100000000
+                        half_result[l] = half_result[l] ^ 0b00011011
+                elif help_box[j*4+l] == 1:
+                    half_result[l] = int(text[l*4+i], 16)
+                 
+                print(text[l*4+i],format(half_result[l], '08b')) 
+            print ("-------------")  
+            result_text.append(format(half_result[0] ^ half_result[1] ^ half_result[2] ^ half_result[3], '02x'))
 
     return result_text
 
-
+def key_xor(text, key):
+    text = shift_rows(text) 
+    key = text_to_byte(key) 
+    result_text = [] 
+    print(key) 
+    print(text) 
+    
+    for i in range(len(text)):
+        result_text[i] = format(int(text[i], 16) ^ int(key[i], 16),'08x')
+        
+    return result_text
+    
 
 message = "Madness, hello!!"
 #message = "Безумие безумию!"
 key = "secretsecretsecretsecretsecretse"
 
 #print(text_to_byte(message))
-print(shift_rows(message))
-print(mix_column(message))
+#print(shift_rows(message))
+print(key_xor(message, key))
 #print(text_to_byte(key))
 
+    
