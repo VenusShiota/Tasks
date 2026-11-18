@@ -206,49 +206,63 @@ def key_expansion(key):
     return result_keys
 
 
-def to_aes(text, key):
-    result_text = ""
-    text = text_to_byte(text)
+def to_aes(message, key):
+    result_block = ""
     set_key = key_expansion(text_to_byte(key))
 
-    text = key_xor(text, set_key[0:16])
-    for i in range(1, 14):
-        key = set_key[0+i*16:16+i*16]
-        text = key_xor(mix_column(shift_rows(sub_bytes(text, 0), 0), 0), key)
-    text = key_xor(shift_rows(sub_bytes(text, 0), 0), set_key[224:240])
+    while len(message) % 16 != 0:
+        message = '0' + message
 
-    for i in range(len(text)):
-        result_text += text[i]
+    for i in range(len(message) // 16):
+        text = message[0+i*16:16+i*16]
 
-    return result_text
+        result_text = ""
+        text = text_to_byte(text)
+
+        text = key_xor(text, set_key[0:16])
+        for i in range(1, 14):
+            key = set_key[0+i*16:16+i*16]
+            text = key_xor(mix_column(shift_rows(sub_bytes(text, 0), 0), 0), key)
+        text = key_xor(shift_rows(sub_bytes(text, 0), 0), set_key[224:240])
+
+        for i in range(len(text)):
+            result_text += text[i]
+
+        result_block += result_text
+
+    return result_block
 
 
 def from_aes(message, key):
-    text = []
+    textf = []
+    result_block = ""
     set_key = key_expansion(text_to_byte(key))
 
-    for i in range(len(message) // 2):
-        help_text = ""
-        for j in range(2):
-            help_text += message[i * 2 + j]
-        text.append(help_text)
+    for n in range(len(message) // 32):
+        for i in range(len(message) // 2):
+            help_text = ""
+            for j in range(2):
+                help_text += message[i * 2 + j]
+            textf.append(help_text)
 
-    text = key_xor(text, set_key[224:240])
-    for i in range(13):
-        key = set_key[208-i*16:224-i*16]
-        text = mix_column(key_xor(sub_bytes(shift_rows(text, 1), 1), key), 1)
-        #text = sub_bytes(shift_rows(mix_column(key_xor(text, key), 1), 1), 1)
-    text = key_xor(sub_bytes(shift_rows(text, 1), 1), set_key[0:16])
+        text = textf[0+n*16:16+n*16]
 
-    result_text = text_from_byte(text)
+        text = key_xor(text, set_key[224:240])
+        for i in range(13):
+            key = set_key[208-i*16:224-i*16]
+            text = mix_column(key_xor(sub_bytes(shift_rows(text, 1), 1), key), 1)
+        text = key_xor(sub_bytes(shift_rows(text, 1), 1), set_key[0:16])
 
-    return result_text
+        result_text = text_from_byte(text)
 
-message = "Madness, hello!!"
+        result_block += result_text
+
+    return result_block
+
+message = "I am here... Madness, hello!!"
 password = "secretsecretsecretsecretsecretse"
 secret = to_aes(message, password)
 
 print(secret)
 print(from_aes(secret, password))
 
-    
