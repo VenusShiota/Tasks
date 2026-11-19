@@ -211,7 +211,7 @@ def to_aes(message, key):
     set_key = key_expansion(text_to_byte(key))
 
     while len(message) % 16 != 0:
-        message = '0' + message
+        message = '_' + message
 
     for i in range(len(message) // 16):
         text = message[0+i*16:16+i*16]
@@ -259,10 +259,24 @@ def from_aes(message, key):
 
     return result_block
 
-message = "I am here... Madness, hello!!"
-password = "secretsecretsecretsecretsecretse"
-secret = to_aes(message, password)
 
-print(secret)
-print(from_aes(secret, password))
+def process():
+    password = "secretsecretsecretsecretsecretse"
+    file_path = input("Input your file path: ")
+    act = input("What to do? 0 - encrypt, 1 - decrypt: ")
 
+
+    with open(file_path, "r") as file:
+        text = file.readlines()
+    if act == '0':
+        with open('secret_file.txt', 'w') as new_file:
+            for line in range(len(text)):
+                new_file.write(to_aes(text[line], password))
+    elif act == '1':
+        with open('open_file.txt', 'w') as new_file:
+            for line in range(len(text)):
+                new_file.write(from_aes(text[line], password))
+
+
+
+process()
