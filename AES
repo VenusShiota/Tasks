@@ -280,3 +280,10 @@ def process():
 
 
 process()
+
+message = "I am here...AHAHMadness, hello!!"
+password = "secretsecretsecretsecretsecretse"
+secret = to_aes(message, password)
+
+#print(secret)
+#print(from_aes(secret, password))
