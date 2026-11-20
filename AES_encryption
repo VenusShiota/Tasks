@@ -34,7 +34,7 @@ def sub_bytes(text, act):
                 0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
                 0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d]
 
-    for symb in range(16):
+    for symb in range(len(text)):
         help_index = 0
         for num in range(16):
             if text[symb][0] == help_box[num]:
@@ -122,6 +122,38 @@ def mix_column(text, act):
             result_text.append(format(xor_box[0] ^ xor_box[1] ^ xor_box[2] ^ xor_box[3], '02x'))
 
     return result_text
+
+def key_gen(key):
+    result_keys = key
+    help_box = [-3, -2, -1, -4]
+    rcon = [0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20] 
+    
+    for i in range(13):
+        for j in range(4):
+            help_keys = [] 
+            if i % 2 == 0 and j == 0:
+                for l in range(4):
+                    help_keys.append(result_keys[help_box[l]])
+                help_keys = sub_bytes(help_keys, 0)
+                for l in range(4):
+                    if l == 0:
+                        result_keys.append(format(int(help_keys[l], 16) ^ rcon[i//2] ^ int(result_keys[i*16+i], 16), '02x'))
+                    else:
+                        result_keys.append(format(int(help_keys[l], 16) ^ 0x00 ^ int(result_keys[i*16+i], 16), '02x'))
+            elif i % 2 == 1 and j == 0:
+                for l in range(-1, -5, -1):
+                    help_keys.append(result_keys[l])
+                help_keys = sub_bytes(help_keys, 0)
+                for l in range(4):
+                    result_keys.append(format(int(help_keys[l], 16) ^ int(result_keys[i*16+i], 16), '02x'))
+            else:
+                for l in range(-1, -5, -1):
+                    help_keys.append(result_keys[l])
+                for l in range(4):
+                    result_keys.append(format(int(help_keys[l], 16) ^ int(result_keys[i*16+i], 16), '02x'))
+                    
+    return result_keys 
+
 
 def key_xor(text, key):
     result_text = []
