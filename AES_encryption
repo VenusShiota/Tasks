@@ -144,7 +144,7 @@ def process():
         aes_text_block = [text_block[help_box[ind]] for ind in range(16)]
         return aes_text_block
 
-message = process()
+message = process() #['4d', '65', '20', '6c', '61', '73', '68', '6f', '64', '73', '65', '21', '6e', '2c', '6c', '21']
 print(message)
 message = mix_column(message, 0)
 print(message)
